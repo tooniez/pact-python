@@ -42,7 +42,7 @@ repos:
         stages: [pre-push]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.6
+    rev: v0.4.10
     hooks:
       - id: ruff
         # Exclude python files in pact/** and tests/**, except for the
@@ -53,7 +53,7 @@ repos:
         exclude: ^(pact|tests)/(?!v3/).*\.py$
 
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.22.0
+    rev: v3.27.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -71,7 +71,7 @@ repos:
         stages: [pre-push]
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.39.0
+    rev: v0.41.0
     hooks:
       - id: markdownlint
         exclude: |

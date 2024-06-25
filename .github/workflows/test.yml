@@ -28,7 +28,7 @@ jobs:
 
     services:
       broker:
-        image: pactfoundation/pact-broker:latest@sha256:8f10947f230f661ef21f270a4abcf53214ba27cd68063db81de555fcd93e07dd
+        image: pactfoundation/pact-broker:latest@sha256:fc44f0a6e731c7de78bf44923b9ab41e5d3351388bfcf2f648e72844041cf74d
         ports:
           - "9292:9292"
         env:
@@ -52,7 +52,7 @@ jobs:
             experimental: true
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
           submodules: true
 
@@ -89,7 +89,7 @@ jobs:
       - name: Upload coverage
         # TODO: Configure code coverage monitoring
         if: false && matrix.python-version == env.STABLE_PYTHON_VERSION && matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@84508663e988701840491b86de86b666e8a86bed # v4
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -98,17 +98,26 @@ jobs:
       Tests py${{ matrix.python-version }} on ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
 
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        experimental: [false]
+        # Python 3.8 and 3.9 aren't supported on macos-latest (ARM)
+        exclude:
+          - os: macos-latest
+            python-version: "3.8"
+          - os: macos-latest
+            python-version: "3.9"
+        include:
+          - os: macos-13
+            python-version: "3.8"
+          - os: macos-13
+            python-version: "3.9"
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
           submodules: true
 
@@ -149,7 +158,7 @@ jobs:
 
     services:
       broker:
-        image: pactfoundation/pact-broker:latest@sha256:8f10947f230f661ef21f270a4abcf53214ba27cd68063db81de555fcd93e07dd
+        image: pactfoundation/pact-broker:latest@sha256:fc44f0a6e731c7de78bf44923b9ab41e5d3351388bfcf2f648e72844041cf74d
         ports:
           - "9292:9292"
         env:
@@ -161,7 +170,7 @@ jobs:
           PACT_BROKER_DATABASE_URL: sqlite:////tmp/pact_broker.sqlite
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Set up Python 3
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5
@@ -194,7 +203,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Set up Python
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5

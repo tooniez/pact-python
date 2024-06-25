@@ -291,7 +291,7 @@ class Provider:
         Start the provider.
         """
         url = URL(f"http://localhost:{_find_free_port()}")
-        sys.stderr.write("Starting provider on %s\n" % url)
+        sys.stderr.write(f"Starting provider on {url}\n")
         for endpoint in self.app.url_map.iter_rules():
             sys.stderr.write(f"  * {endpoint}\n")
 
@@ -786,7 +786,7 @@ def a_pact_file_for_interaction_is_to_be_verified_from_a_pact_broker(
         if reset_broker_var.get():
             logger.debug("Resetting Pact broker")
             pact_broker.reset()
-            reset_broker_var.set(False)  # noqa: FBT003
+            reset_broker_var.set(False)
         pact_broker.publish(pacts_dir)
         verifier.broker_source(pact_broker.url)
         yield pact_broker

@@ -2,6 +2,13 @@ name: docs
 
 on:
   push:
+    tags:
+      - v*
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 env:
   STABLE_PYTHON_VERSION: "3.12"
@@ -16,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
           fetch-depth: 0
 
@@ -41,7 +48,7 @@ jobs:
   publish:
     name: Publish docs
 
-    if: github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
 
     needs: build
     runs-on: ubuntu-latest

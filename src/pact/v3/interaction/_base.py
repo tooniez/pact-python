@@ -37,6 +37,19 @@ class Interaction(abc.ABC):
     -  [`HttpInteraction`][pact.v3.interaction.HttpInteraction]
     -  [`AsyncMessageInteraction`][pact.v3.interaction.AsyncMessageInteraction]
     -  [`SyncMessageInteraction`][pact.v3.interaction.SyncMessageInteraction]
+
+    # Interaction Part
+
+    For HTTP and synchronous message interactions, the interaction is split into
+    two parts: the request and the response. The interaction part is used to
+    specify which part of the interaction is being set. This is specified using
+    the `part` argument of various methods (which defaults to an intelligent
+    choice based on the order of the methods called).
+
+    The asynchronous message interaction does not have parts, as the interaction
+    contains a single message from the provider (a.ka. the producer of the
+    message) to the consumer. An attempt to set a response part will raise an
+    error.
     """
 
     def __init__(self, description: str) -> None:
@@ -295,6 +308,73 @@ class Interaction(abc.ABC):
         )
         return self
 
+    def with_metadata(
+        self,
+        __metadata: dict[str, str] | None = None,
+        __part: Literal["Request", "Response"] | None = None,
+        /,
+        **kwargs: str,
+    ) -> Self:
+        """
+        Set metadata for the interaction.
+
+        This function may either be called with a single dictionary of metadata,
+        or with keyword arguments that are the key-value pairs of the metadata
+        (or a combination therefore):
+
+        ```python
+        interaction.with_metadata({"key": "value", "key two": "value two"})
+        interaction.with_metadata(foo="bar", baz="qux")
+        ```
+
+        The value of `None` will remove the metadata key from the interaction.
+        This is distinct from using an empty string or a string containing the
+        JSON `null` value, which will set the metadata key to an empty string or
+        the JSON `null` value, respectively.
+
+        !!! note
+
+            There are two special keys which cannot be used as keyword
+            arguments: `__metadata` and `__part`. Should there ever be a need
+            to set metadata with one of these keys, they must be passed through
+            as a dictionary:
+
+            ```python
+            interaction.with_metadata({"__metadata": "value", "__part": 1})
+            ```
+
+        Args:
+            ___metadata:
+                Dictionary of metadata keys and associated values.
+
+            __part:
+                Whether the metadata should be added to the request or the
+                response. If `None`, then the function intelligently determines
+                whether the body should be added to the request or the response.
+
+            **kwargs:
+                Additional metadata key-value pairs.
+
+        Returns:
+            The current instance of the interaction.
+        """
+        part = self._parse_interaction_part(__part)
+        for k, v in (__metadata or {}).items():
+            pact.v3.ffi.with_metadata(
+                self._handle,
+                k,
+                v,
+                part,
+            )
+        for k, v in kwargs.items():
+            pact.v3.ffi.with_metadata(
+                self._handle,
+                k,
+                v,
+                part,
+            )
+        return self
+
     def with_multipart_file(  # noqa: PLR0913
         self,
         part_name: str,
@@ -469,5 +549,38 @@ class Interaction(abc.ABC):
             self._handle,
             self._parse_interaction_part(part),
             rules,
+        )
+        return self
+
+    def with_generators(
+        self,
+        generators: dict[str, Any] | str,
+        part: Literal["Request", "Response"] | None = None,
+    ) -> Self:
+        """
+        Add generators to the interaction.
+
+        Generators are used to adjust how parts of the request or response are
+        generated when the Pact is being tested. This can be useful for fields
+        that vary each time the request is made, such as a timestamp.
+
+        Args:
+            generators:
+                Generators to add to the interaction. This must be encodable using
+                [`json.dumps(...)`][json.dumps], or a string.
+
+            part:
+                Whether the generators should be added to the request or the
+                response. If `None`, then the function intelligently determines
+                whether the generators should be added to the request or the
+                response.
+        """
+        if isinstance(generators, dict):
+            generators = json.dumps(generators)
+
+        pact.v3.ffi.with_generators(
+            self._handle,
+            self._parse_interaction_part(part),
+            generators,
         )
         return self
